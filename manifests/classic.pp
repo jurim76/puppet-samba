@@ -56,6 +56,7 @@ class samba::classic(
   $globalabsentoptions            = [],
   $joinou                         = undef,
   Optional[String] $default_realm = undef,
+  Optional[String] $service_restart = undef,
   Array $additional_realms        = [],
 ) inherits samba::params{
 
@@ -218,6 +219,7 @@ class samba::classic(
   service{ 'SambaSmb':
     ensure  => 'running',
     name    => $samba::params::servivesmb,
+    $service_restart = $::nginx::service_restart,
     require => [ Package['SambaClassic'], File['SambaOptsFile'] ],
     enable  => true,
   }
@@ -230,6 +232,14 @@ class samba::classic(
       enable  => true,
     }
   }
+  
+  # Allow overriding of 'restart' of Service resource
+  if $service_restart {
+    Service['SambaSmb'] {
+      restart => $service_restart,
+    }
+  }
+
   $sambamode = 'classic'
   # Deploy /etc/sysconfig/|/etc/defaut/ file (startup options)
   file{ 'SambaOptsFile':
